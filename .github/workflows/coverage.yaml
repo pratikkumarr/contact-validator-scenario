@@ -1,0 +1,39 @@
+name: Coverage
+
+on:
+	pull_request:
+		branches:
+			- main
+
+jobs:
+	coverage:
+		runs-on: ubuntu-latest
+		steps:
+			- name: Check out repository
+				uses: actions/checkout@v4
+
+			- name: Set up Node.js
+				uses: actions/setup-node@v4
+				with:
+					node-version: 20
+					cache: npm
+
+			- name: Install dependencies
+				run: npm ci
+
+			- name: Run tests and enforce coverage
+				run: >-
+					npx --yes c8
+					--include=src/**
+					--check-coverage
+					--lines=85
+					--reporter=text-summary
+					npm test
+
+			- name: Add coverage result to summary
+				if: always()
+				run: |
+					{
+						echo '## Coverage'
+						echo 'Tests instrumented `src/**`; the test step enforces a minimum of 85% line coverage.'
+					} >> "$GITHUB_STEP_SUMMARY"
